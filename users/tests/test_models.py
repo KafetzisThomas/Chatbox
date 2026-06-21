@@ -1,11 +1,15 @@
 import io
-from django.test import TestCase
+import shutil
+import tempfile
+from django.test import TestCase, override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from PIL import Image
 from ..models import Profile
 
+TEMP_MEDIA_ROOT = tempfile.mkdtemp()
 
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class ProfileModelTests(TestCase):
 
     def setUp(self):
@@ -34,3 +38,8 @@ class ProfileModelTests(TestCase):
         img = Image.open(profile.avatar.path)
         self.assertLessEqual(img.height, 300)
         self.assertLessEqual(img.width, 300)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()

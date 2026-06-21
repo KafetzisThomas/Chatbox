@@ -1,8 +1,13 @@
 import io
+import shutil
+import tempfile
 from PIL import Image
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from ..models import PrivateChat, Message
+
+TEMP_MEDIA_ROOT = tempfile.mkdtemp()
 
 
 class PrivateChatModelTests(TestCase):
@@ -27,6 +32,7 @@ class PrivateChatModelTests(TestCase):
         self.assertFalse(PrivateChat.objects.filter(id=chat.id).exists())
 
 
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class MessageModelTests(TestCase):
 
     def setUp(self):
@@ -47,10 +53,12 @@ class MessageModelTests(TestCase):
         image.save(byte_io, format="JPEG")
         byte_io.seek(0)
 
-        image_data = byte_io.getvalue()
-        message = Message.objects.create(chat=self.chat, user=self.user1, content="", image=image_data)
+        img = SimpleUploadedFile("test_image.jpg", byte_io.getvalue(), content_type="image/jpeg")
+        message = Message.objects.create(chat=self.chat, user=self.user1, content="", image=img)
+
         self.assertEqual(message.content, "")
-        self.assertEqual(message.image, image_data)
+        self.assertTrue(bool(message.image))
+        self.assertTrue(message.image.name.startswith("chat_images/"))
 
     def test_cascade_deletion_chat(self):
         message = Message.objects.create(chat=self.chat, user=self.user1, content="Goodbye!")
@@ -61,3 +69,8 @@ class MessageModelTests(TestCase):
         message = Message.objects.create(chat=self.chat, user=self.user1, content="Goodbye!")
         self.user1.delete()
         self.assertFalse(Message.objects.filter(id=message.id).exists())
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()

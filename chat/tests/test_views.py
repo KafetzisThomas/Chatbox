@@ -1,10 +1,14 @@
 import io
 from PIL import Image
-from django.test import TestCase
+import shutil
+import tempfile
+from django.test import TestCase, override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from django.urls import reverse
 from ..models import PrivateChat, Message
+
+TEMP_MEDIA_ROOT = tempfile.mkdtemp()
 
 
 class ChatListViewTests(TestCase):
@@ -121,6 +125,7 @@ class ChatViewTests(TestCase):
         self.assertRedirects(response, self.chat_list_url)
 
 
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class UploadImageViewTests(TestCase):
 
     def setUp(self):
@@ -146,6 +151,11 @@ class UploadImageViewTests(TestCase):
         data = response.json()
         self.assertIn("image_name", data)
         self.assertIn("image_url", data)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
 
 
 class DeleteChatViewTests(TestCase):

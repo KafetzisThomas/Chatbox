@@ -1,10 +1,14 @@
 import io
 from PIL import Image
-from django.test import TestCase
+import shutil
+import tempfile
+from django.test import TestCase, override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
 from django.urls import reverse
 from ..models import Profile
+
+TEMP_MEDIA_ROOT = tempfile.mkdtemp()
 
 
 class RegisterViewTests(TestCase):
@@ -22,6 +26,7 @@ class RegisterViewTests(TestCase):
         self.assertRedirects(response, reverse("users:login"))
 
 
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class AccountViewTests(TestCase):
 
     def setUp(self):
@@ -56,3 +61,8 @@ class AccountViewTests(TestCase):
         self.profile.refresh_from_db()
 
         self.assertIsNotNone(self.profile.avatar)
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
