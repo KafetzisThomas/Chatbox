@@ -36,7 +36,7 @@ dependencies = [
     "python-dotenv==1.2.2",
     "redis==8.0.1",
     "service-identity==26.1.0",
-    "sqlparse==0.5.5",
+    "sqlparse==0.6.0",
     "tomli==2.4.1",
     "twisted==26.4.0",
     "txaio==26.6.1",
