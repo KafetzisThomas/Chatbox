@@ -15,7 +15,7 @@ dependencies = [
     "django-crispy-forms==2.7",
     "django-storages>=1.14.6",
     "pillow==12.3.0",
-    "psycopg2-binary==2.9.12",
+    "psycopg2-binary==2.9.13",
     "python-dotenv==1.2.3",
 ]
 
